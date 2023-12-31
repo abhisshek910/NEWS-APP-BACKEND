@@ -120,7 +120,7 @@ router.post("/post/add-comment/:id", async (req, res) => {
 
   try {
     // Find the post by ID
-    const post = await Post.findById(postId);
+    const post = await Blog.findById(postId);
 
     if (!post) {
       return res.status(404).json({ error: "Post not found" });
