@@ -10,6 +10,13 @@ const postSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  comments: [
+    {
+      name: String,
+      email: String,
+      comment: String,
+    },
+  ],
 });
 
 const Post = mongoose.model("Post", postSchema);

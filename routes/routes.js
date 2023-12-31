@@ -114,6 +114,31 @@ router.get("/post/:id", async (req, res) => {
   }
 });
 
+router.post("/post/add-comment/:id", async (req, res) => {
+  const postId = req.params.id;
+  const { name, email, comment } = req.body;
+
+  try {
+    // Find the post by ID
+    const post = await Post.findById(postId);
+
+    if (!post) {
+      return res.status(404).json({ error: "Post not found" });
+    }
+
+    // Add a new comment to the post
+    post.comments.push({ name, email, comment });
+
+    // Save the updated post
+    const updatedPost = await post.save();
+
+    res.json(updatedPost);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 router.delete("/post/:id", async (req, res) => {
   try {
     const blog = await Blog.findOneAndDelete(req.params.id);
