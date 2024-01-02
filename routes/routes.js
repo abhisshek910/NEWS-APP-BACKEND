@@ -26,8 +26,8 @@ router.use(express.json());
 router.use(express.static("public"));
 
 aws.config.update({
-  accessKeyId: "AKIAUDZJLBUPAKXQRCIL",
-  secretAccessKey: "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",
+  accessKeyId: process.env.ID,
+  secretAccessKey: process.env.key,
 });
 
 const s3 = new aws.S3();

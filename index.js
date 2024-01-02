@@ -9,13 +9,6 @@ const path = require("path");
 const app = express();
 const AWS = require("aws-sdk");
 
-AWS.config.update({
-  accessKeyId: "AKIAUDZJLBUPAKXQRCIL",
-  secretAccessKey: "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",
-});
-
-s3 = new AWS.S3();
-
 require("dotenv").config(); // Load environment variables from .env file
 
 app.use(cors());
