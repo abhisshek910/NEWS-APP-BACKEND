@@ -167,7 +167,7 @@ router.post("/post/add-comment/:id", async (req, res) => {
 
 router.delete("/post/:id", async (req, res) => {
   try {
-    const blog = await Blog.findOneAndDelete(req.params.id);
+    const blog = await Blog.findOneAndDelete({ _id: req.params.id });
     console.log(blog);
     if (!blog) {
       return res.status(404).json({ error: "Blog post not found" });
