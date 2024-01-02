@@ -103,7 +103,7 @@ router.put("/update-post", (req, res) => {
 
       // Update image if a new file is provided
       if (req.file) {
-        post.imageUrl = `/uploads/${req.file.filename}`;
+        post.imageUrl = req.file.location;
       }
 
       // Save the updated post
