@@ -2,26 +2,52 @@
 const express = require("express");
 const multer = require("multer");
 const path = require("path");
+const multerS3 = require("multer-s3");
+const aws = require("aws-sdk");
 const Blog = require("../models/post");
 const { default: mongoose } = require("mongoose");
 
 const router = express.Router();
 
 // Set up multer for image uploads
-const storage = multer.diskStorage({
-  destination: "./public/uploads/",
-  filename: (req, file, cb) => {
+// const storage = multer.diskStorage({
+//   destination: "./public/uploads/",
+//   filename: (req, file, cb) => {
+//     cb(
+//       null,
+//       file.fieldname + "-" + Date.now() + path.extname(file.originalname)
+//     );
+//   },
+// });
+
+// const upload = multer({ storage }).single("file");
+
+router.use(express.json());
+router.use(express.static("public"));
+
+aws.config.update({
+  accessKeyId: "AKIAUDZJLBUPAKXQRCIL",
+  secretAccessKey: "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",
+});
+
+const s3 = new aws.S3();
+
+const storage = multerS3({
+  s3: s3,
+  bucket: "dhaamkanews",
+  key: (req, file, cb) => {
     cb(
       null,
-      file.fieldname + "-" + Date.now() + path.extname(file.originalname)
+      "uploads/" +
+        file.fieldname +
+        "-" +
+        Date.now() +
+        path.extname(file.originalname)
     );
   },
 });
 
-const upload = multer({ storage }).single("file");
-
-router.use(express.json());
-router.use(express.static("public"));
+const upload = multer({ storage: storage }).single("file");
 
 // Create a new blog post
 router.post("/add-post", (req, res) => {
@@ -32,7 +58,7 @@ router.post("/add-post", (req, res) => {
       }
 
       const { title, subtitle, description, tags } = req.body;
-      const imageUrl = `/uploads/${req.file.filename}`;
+      const imageUrl = req.file.location;
 
       // Create a new Blog instance
       const newBlog = new Blog({
