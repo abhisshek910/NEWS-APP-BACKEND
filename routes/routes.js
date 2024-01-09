@@ -47,7 +47,10 @@ const storage = multerS3({
   },
 });
 
-const upload = multer({ storage: storage }).single("file");
+const upload = multer({ storage: storage }).fields([
+  { name: "image", maxCount: 1 },
+  { name: "Video", maxCount: 1 },
+]);
 
 // Create a new blog post
 router.post("/add-post", (req, res) => {
