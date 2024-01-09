@@ -62,11 +62,10 @@ router.post("/add-post", (req, res) => {
 
       const { title, subtitle, description, tags } = req.body;
 
-      const imageFile = req.files["image"][0];
-      const videoFile = req.files["Video"][0];
-
-      const imageUrl = imageFile ? imageFile.location : null;
-      const videoUrl = videoFile ? videoFile.location : null;
+      const imageUrl =
+        req.files && req.files["image"] ? req.files["image"][0].location : null;
+      const videoUrl =
+        req.files && req.files["Video"] ? req.files["Video"][0].location : null;
 
       // Create a new Blog instance
       const newBlog = new Blog({
