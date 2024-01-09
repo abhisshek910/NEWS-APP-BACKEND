@@ -51,14 +51,19 @@ const upload = multer({ storage: storage }).single("file");
 
 // Create a new blog post
 router.post("/add-post", (req, res) => {
-  upload(req, res, async (err) => {
+  upload.array("files", 2)(req, res, async (err) => {
     try {
       if (err) {
         return res.status(500).json({ error: err.message });
       }
 
       const { title, subtitle, description, tags } = req.body;
-      const imageUrl = req.file.location;
+
+      const imageFile = req.files[0];
+      const videoFile = req.files[1];
+
+      const imageUrl = imageFile ? imageFile.location : null;
+      const videoUrl = videoFile ? videoFile.location : null;
 
       // Create a new Blog instance
       const newBlog = new Blog({
@@ -66,6 +71,7 @@ router.post("/add-post", (req, res) => {
         subtitle,
         description,
         imageUrl,
+        videoUrl,
         tags,
       });
 
