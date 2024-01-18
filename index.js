@@ -8,10 +8,12 @@ const postRoutes = require("./routes/routes");
 const path = require("path");
 const app = express();
 const AWS = require("aws-sdk");
+const compression = require("compression");
 
 require("dotenv").config(); // Load environment variables from .env file
 
 app.use(cors());
+app.use(compression());
 app.use(bodyParser.json());
 
 mongoose.connect(process.env.MONGODB_URI, {
