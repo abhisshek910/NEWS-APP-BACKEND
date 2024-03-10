@@ -143,6 +143,16 @@ router.get("/all-postss", async (req, res) => {
   }
 });
 
+router.get("/all-postsss", async (req, res) => {
+  try {
+    const blogs = await Blog.find({}).sort({ createdAt: -1 }).limit(5).lean();
+
+    res.json(blogs);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 router.get("/post/:id", async (req, res) => {
   try {
     const blog = await Blog.findById(
