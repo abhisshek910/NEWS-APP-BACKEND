@@ -134,6 +134,15 @@ router.get("/all-post", async (req, res) => {
   }
 });
 
+router.get("/all-postss", async (req, res) => {
+  try {
+    const blogs = await Blog.find().sort({ createdAt: -1 }).limit(5);
+    res.json(blogs);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 router.get("/post/:id", async (req, res) => {
   try {
     const blog = await Blog.findById(
