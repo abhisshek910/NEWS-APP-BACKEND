@@ -96,6 +96,11 @@ router.put("/update-post", (req, res) => {
 
       const { title, subtitle, description, tags, id } = req.body;
 
+      // const imageUrl =
+      //   req.files && req.files["image"] ? req.files["image"][0].location : null;
+      // const videoUrl =
+      //   req.files && req.files["Video"] ? req.files["Video"][0].location : null;
+
       // Find the post by ID
       const post = await Blog.findById(id);
 
@@ -145,7 +150,42 @@ router.get("/all-postss", async (req, res) => {
 
 router.get("/all-postsss", async (req, res) => {
   try {
-    const blogs = await Blog.find({}).sort({ createdAt: -1 }).limit(5).lean();
+    const blogs = await Blog.find({}).sort({ createdAt: -1 }).limit(6).lean();
+
+    res.json(blogs);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.get("/all-postse", async (req, res) => {
+  try {
+    const { lastPostId, limit = 6 } = req.query;
+
+    let query = {};
+    if (lastPostId) {
+      query = { _id: { $lt: lastPostId } };
+    }
+    const blogs = await Blog.find({})
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .lean();
+    res.json(blogs);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.get("/all-postsese", async (req, res) => {
+  try {
+    let page = parseInt(req.query.page) || 1;
+    const limit = 6;
+
+    const blogs = await Blog.find({})
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .lean();
 
     res.json(blogs);
   } catch (error) {
