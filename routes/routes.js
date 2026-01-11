@@ -3,38 +3,35 @@ const express = require("express");
 const multer = require("multer");
 const path = require("path");
 const multerS3 = require("multer-s3");
-const aws = require("aws-sdk");
+const { S3Client } = require("@aws-sdk/client-s3");
 const Blog = require("../models/post");
 const { default: mongoose } = require("mongoose");
 
 const router = express.Router();
 
-// Set up multer for image uploads
-// const storage = multer.diskStorage({
-//   destination: "./public/uploads/",
-//   filename: (req, file, cb) => {
-//     cb(
-//       null,
-//       file.fieldname + "-" + Date.now() + path.extname(file.originalname)
-//     );
-//   },
-// });
-
-// const upload = multer({ storage }).single("file");
-
 router.use(express.json());
 router.use(express.static("public"));
 
-aws.config.update({
-  accessKeyId: process.env.ID,
-  secretAccessKey: process.env.key,
+// Cloudflare R2 Configuration
+const CLOUDFLARE_ACCOUNT_ID = "3d4fbc0a711746976d879d5d0b4a76af";
+const R2_BUCKET_NAME = process.env.R2_BUCKET_NAME || "dhaamkanews";
+
+const s3Client = new S3Client({
+  region: "auto",
+  endpoint: `https://${CLOUDFLARE_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+  credentials: {
+    accessKeyId: process.env.R2_ACCESS_KEY_ID,
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
+  },
 });
 
-const s3 = new aws.S3();
+// R2 Public URL (set this after enabling public access on your bucket)
+const R2_PUBLIC_URL = process.env.R2_PUBLIC_URL;
 
 const storage = multerS3({
-  s3: s3,
-  bucket: "dhaamkanews",
+  s3: s3Client,
+  bucket: R2_BUCKET_NAME,
+  contentType: multerS3.AUTO_CONTENT_TYPE,
   key: (req, file, cb) => {
     cb(
       null,
@@ -62,10 +59,17 @@ router.post("/add-post", (req, res) => {
 
       const { title, subtitle, description, tags } = req.body;
 
+      // Construct public URLs for R2
+      const getPublicUrl = (file) => {
+        if (!file) return null;
+        // R2 doesn't return location like S3, so we construct the URL
+        return R2_PUBLIC_URL ? `${R2_PUBLIC_URL}/${file.key}` : file.location || `${R2_BUCKET_NAME}/${file.key}`;
+      };
+
       const imageUrl =
-        req.files && req.files["image"] ? req.files["image"][0].location : null;
+        req.files && req.files["image"] ? getPublicUrl(req.files["image"][0]) : null;
       const videoUrl =
-        req.files && req.files["Video"] ? req.files["Video"][0].location : null;
+        req.files && req.files["Video"] ? getPublicUrl(req.files["Video"][0]) : null;
 
       // Create a new Blog instance
       const newBlog = new Blog({
@@ -96,10 +100,11 @@ router.put("/update-post", (req, res) => {
 
       const { title, subtitle, description, tags, id } = req.body;
 
-      // const imageUrl =
-      //   req.files && req.files["image"] ? req.files["image"][0].location : null;
-      // const videoUrl =
-      //   req.files && req.files["Video"] ? req.files["Video"][0].location : null;
+      // Construct public URLs for R2
+      const getPublicUrl = (file) => {
+        if (!file) return null;
+        return R2_PUBLIC_URL ? `${R2_PUBLIC_URL}/${file.key}` : file.location || `${R2_BUCKET_NAME}/${file.key}`;
+      };
 
       // Find the post by ID
       const post = await Blog.findById(id);
@@ -115,8 +120,13 @@ router.put("/update-post", (req, res) => {
       post.tags = tags || post.tags;
 
       // Update image if a new file is provided
-      if (req.file) {
-        post.imageUrl = req.file.location;
+      if (req.files && req.files["image"]) {
+        post.imageUrl = getPublicUrl(req.files["image"][0]);
+      }
+
+      // Update video if a new file is provided
+      if (req.files && req.files["Video"]) {
+        post.videoUrl = getPublicUrl(req.files["Video"][0]);
       }
 
       // Save the updated post
